@@ -153,11 +153,6 @@ showCube cube = ilines [1,4,7] ++ llines [10,19,28] ++ ilines [37,40..52]
               line i l = concatMap (label i) [0..l-1] ++ "\n"
               label i j = show (cube ! (i+j)) ++ " "
 
-inversions :: Cube -> Int
-inversions cube = length [() | i <- [1 .. 53]
-                             , j <- [i+1 .. 54]
-                             , lId (cube!i) > lId (cube!j)]
-
 type Piece = [Label]
 
 readPiece :: Cube -> CubeLocation -> Piece
@@ -199,48 +194,10 @@ fillLocation (Puzzle cube pieces) faces =
 solve :: Puzzle -> [Puzzle]
 solve puzzle = foldM fillLocation puzzle cubeLocations
 
-factorial :: Int -> Int
-factorial 0 = 1
-factorial n = n * factorial (n-1)
-
-analyzePieces :: [Piece] -> Int
-analyzePieces pieces = product (map factorial perms) * product turns
-    where opieces = (map.map) lOrientation pieces
-          normalize piece = head $ sort $ shifts piece
-          npieces = map normalize opieces
-          symmetries p = sum [1 | s <- shifts p, s == p]
-          perms = map length $ group $ sort npieces
-          turns = map symmetries npieces
-
-testcube :: [Orientation] -> Cube
-testcube os = listArray (1,54) $ map copyCenter [1..54]
-    where ccube :: Cube
-          ccube = array (1, 54) $ map (\(c, o) -> (c, Label 'X' o c)) $ zip centers os
-          copyCenter c = ccube ! (center c)
-
-testcubes = map testcube [[c5, c20, Upright, c26, c41, c50]  | c20 <- [Upright, TurnedLeft, TurnedRight, UpsideDown]
-                                                             , c5  <- [Upright, TurnedLeft, TurnedRight, UpsideDown]
-                                                             , c26 <- [Upright, TurnedLeft, TurnedRight, UpsideDown]
-                                                             , c41 <- [Upright, TurnedLeft, TurnedRight, UpsideDown]
-                                                             , c50 <- [Upright, TurnedLeft, TurnedRight, UpsideDown]
-                                                             ]
 ctfilter :: Puzzle -> Bool
 ctfilter puzzle = lOrientation (cube!23) == Upright && all inplace [(14, 'C'), (22, 'C'), (24, 'T'), (32, 'T')]
     where inplace (i, c) = lChar (cube!i) == c
           cube = pCube puzzle
-
-cycleShow :: [(Int, Int)] -> String
-cycleShow [] = ""
-cycleShow ((a, b):xs) 
-    | a == b = cycleShow xs
-    | otherwise = let (string, rest) = cycle b xs in "(" ++ show a ++ string ++ cycleShow rest
-    where cycle n ps  = case lookup n ps of
-                           Just m -> let (string, rest) = cycle m (delete (n,m) ps) in ("," ++ show n ++ string, rest)
-                           Nothing -> (")", ps)
-
-cube2perm :: Cube -> [(Int, Int)]
-cube2perm cube = map f $ assocs cube
-    where f (i, l) = (i, lId l)
 
 cube2wordlist :: Cube -> [String]
 cube2wordlist cube = sort $ concatMap face2words labels
@@ -253,35 +210,17 @@ face2words ls = horizontal ++ vertical
           horizontal = (map.map) (chars!!) $ faceLines orientation
           vertical = transpose horizontal
 
-ctWordlist = ["ADD","C'T","C'T","CMD","CSS","CVS","DFS","DOS","DPI","EOF","ESC","FTP","HDD","HEX","IPC","IPS","ISA","MOV","OCR","OCT","OSI","PCI","PDF","PID","PIP","POP","PPP","PPT","RMI","RPC","RTF","SCP","SEO","SIM","TTF","XSS"]
-
 -- | The main entry point.
 main :: IO ()
 main = do
     puzzleFile <- readFile "nerdcube_scrambled.cube"
     let puzzle = readPuzzle puzzleFile
-{-
-    let complexities = map (analyzePieces.cube2pieces) testcubes
-    let m = minimum complexities
-    print m
-    let cs = filter (\c -> analyzePieces (cube2pieces c) == m) testcubes
-    print $ length cs
-    putStrLn $ showCube $ cs !! 50
--}
-{-
     let solutions = solve puzzle
     putStrLn $ showCube $ pCube $ head solutions
     print $ length solutions
     let ctsolutions = filter ctfilter solutions
-    --let possible = map snd $ filter fst $ zip [True,False,False,False,False,True,False,False,False,False,True,False,False,False,False,True] ctsolutions
     putStr $ concat $ intersperse "\n" $ map  (showCube . pCube ) ctsolutions
     print $ length ctsolutions
     forM_ ctsolutions (\p -> print (cube2wordlist (pCube p)))
--}
-    solutionFile <- readFile "solution.cube"
-    let wordlist =  cube2wordlist (readCube solutionFile)
-    print wordlist
-    print $ ctWordlist == wordlist
-    print $ filter (`notElem` ctWordlist) wordlist
     
     
