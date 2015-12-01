@@ -1,4 +1,6 @@
 -- | Crossword Cube Solver (C) by Harald Bögeholz
+{-# LANGUAGE FlexibleContexts #-}
+
 module Main where
 
 import Data.List (tails, cycle, sort, group, find, lookup, delete, intersperse, transpose)
