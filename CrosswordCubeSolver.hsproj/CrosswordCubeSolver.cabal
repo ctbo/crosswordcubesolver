@@ -6,6 +6,8 @@ license: AllRightsReserved
 stability: experimental
 extra-source-files:
     nerdcube_scrambled.cube
+x-ghc-framework-version: 7.10.3-5.9-2
+x-last-ide-version: HfM1.2.1
 Executable CrosswordCubeSolver
   main-is: CrosswordCubeSolver.hs
   buildable: True
