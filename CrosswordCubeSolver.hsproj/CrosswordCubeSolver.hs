@@ -221,11 +221,10 @@ main = do
     puzzleFile <- readFile "nerdcube_scrambled.cube"
     let puzzle = readPuzzle puzzleFile
     let solutions = solve puzzle
-    putStrLn $ showCube $ pCube $ head solutions
-    print $ length solutions
+    putStrLn $ show (length solutions) ++ " total solutions"
     let ctsolutions = filter ctfilter solutions
+    putStrLn $ show (length ctsolutions) ++ " c't solutions"
     putStr $ concat $ intersperse "\n" $ map  (showCube . pCube ) ctsolutions
-    print $ length ctsolutions
     forM_ ctsolutions (\p -> print (cube2wordlist (pCube p)))
     
     
