@@ -1,4 +1,6 @@
--- | Crossword Cube Solver (C) by Harald Bögeholz
+-- Crossword Cube Solver (C) 2016 by Harald Bögeholz
+-- See LICENSE file for license information
+
 {-# LANGUAGE FlexibleContexts #-}
 
 module Main where

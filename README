@@ -1,0 +1,7 @@
+Crossword Cube Solver (C) 2016 by Harald Bögeholz
+
+This program solves a puzzle published (in German) in c't magazine:
+http://heise.de/-2769034
+
+It was developed using Haskell for Mac, but should compile with ghc
+out of the box.
