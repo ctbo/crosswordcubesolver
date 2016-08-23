@@ -81,7 +81,7 @@ cubeLocations :: [CubeLocation]
 cubeLocations = [ [(2,  id),         (53, turnAround)]
                 , [(4,  turnLeft),   (11, id)]
                 , [(6,  turnRight),  (17, id)]
-                , [(8,  turnAround), (14, id)]
+                , [(14, id),         (8,  turnAround)]
                 , [(19, turnLeft),   (49, turnLeft)]
                 , [(22, turnLeft),   (21, turnRight)]
                 , [(24, turnRight),  (25, turnLeft)]
@@ -159,12 +159,12 @@ type Piece = [Label]
 
 readPiece :: Cube -> CubeLocation -> Piece
 readPiece cube faces = map rp faces
-    where rp (i, f) = rotate (inverse f) $ cube!i
+    where rp (i, f) = rotate (inverse f) (cube!i)
 
 -- | a partially solved cube where [Piece] contains unplaced pieces
 data Puzzle = Puzzle { pCube :: Cube
                      , pUnused :: [Piece]
-                     }
+                     } deriving (Show)
 
 cube2pieces :: Cube -> [Piece]
 cube2pieces cube = map (readPiece cube) cubeLocations
@@ -173,31 +173,34 @@ readPuzzle :: String -> Puzzle
 readPuzzle s = Puzzle centerCube pieces
     where cube = readCube s
           pieces = cube2pieces cube
-          centerCube = listArray (1,54) (replicate 54 Blank) // map centerFace centers
+          centerCube = listArray (1,54) (replicate 54 Blank) 
+                       // map centerFace centers
           centerFace i = (i, rotate (const Any) $ cube!i)
 
 fillFace :: Cube -> ((Int, Xform), Label) -> [Cube]
-fillFace cube ((i, f), l) = if faceOrientation /= Invalid
-                               then [cube // [(i, l'), (j, rotate (const faceOrientation) cl)]]
-                               else []
+fillFace cube ((i, f), l) = 
+  if faceOrientation /= Invalid
+  then [cube // [(i, l'), (j, rotate (const faceOrientation) cl)]]
+  else []
     where l' = rotate f l
           j = center i
           cl = cube ! j
           faceOrientation = lOrientation cl ><< lOrientation l'
 
 fillLocation :: Puzzle -> CubeLocation -> [Puzzle]
-fillLocation (Puzzle cube pieces) faces = 
-        [Puzzle cube' pieces' | (piece, pieces') <- takeOne pieces
-                              , length piece == length faces
-                              , piece' <- shifts piece
-                              , cube' <- foldM fillFace cube (zip faces piece')
-                              ]
+fillLocation (Puzzle cube pieces) loc = 
+  [Puzzle cube' pieces' | (piece, pieces') <- takeOne pieces
+                        , length piece == length loc
+                        , piece' <- shifts piece
+                        , cube' <- foldM fillFace cube (zip loc piece')
+                        ]
 
 solve :: Puzzle -> [Puzzle]
 solve puzzle = foldM fillLocation puzzle cubeLocations
 
 ctfilter :: Puzzle -> Bool
-ctfilter puzzle = lOrientation (cube!23) == Upright && all inplace [(14, 'C'), (22, 'C'), (24, 'T'), (32, 'T')]
+ctfilter puzzle = lOrientation (cube!23) == Upright 
+               && all inplace [(14, 'C'), (22, 'C'), (24, 'T'), (32, 'T')]
     where inplace (i, c) = lChar (cube!i) == c
           cube = pCube puzzle
 
